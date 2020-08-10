@@ -22,11 +22,13 @@ class HashTable:
 
     def __init__(self, capacity):
         # Your code here
-        self.capacity = capacity
-        self.size = 0
-        if capacity < MIN_CAPACITY:
-            self.capacity = MIN_CAPACITY
+
+        self.capacity = MIN_CAPACITY
+
         self.storage = [None] * self.capacity
+        self.count = 0
+
+
 
 
     def get_num_slots(self):
@@ -37,10 +39,10 @@ class HashTable:
 
         One of the tests relies on this.
 
-        Implement this.
+        Implement this
         """
         # Your code here
-        return self.capacity
+        return self.storage
 
 
     def get_load_factor(self):
@@ -50,6 +52,9 @@ class HashTable:
         Implement this.
         """
         # Your code here
+        return self.count / self.capacity
+
+
 
 
     def fnv1(self, key):
@@ -68,11 +73,15 @@ class HashTable:
 
         Implement this, and/or FNV-1.
         """
+
+        
         # Your code here
-        hash = 5381
-        for x in key:
-            hash = (( hash << 5) + hash) + ord(x)
-        return hash & 0xFFFFFFFF
+        hash_index = 5381
+        hash_bytes = key.encode()
+
+        for byte in hash_bytes:
+            hash_index = ((hash_index << 5) + hash_index) + byte
+        return hash_index
 
 
     def hash_index(self, key):
@@ -90,10 +99,34 @@ class HashTable:
         Hash collisions should be handled with Linked List Chaining.
 
         Implement this.
+        
         """
-        # Your code here
         hash_index = self.hash_index(key)
-        self.storage[hash_index] = HashTableEntry(key, value)
+
+        if not self.storage[hash_index]:
+            self.storage[hash_index] = HashTableEntry(key, value)
+            self.count += 1
+
+        # if a linked list already exists at this location
+        # we either update the value for an existing key OR create a new entry for the key
+        else:
+            current = self.storage[hash_index]
+
+            while current.key != key and current.next:
+                current = current.next
+
+            # find the key and update its current value
+            if current.key == key:
+                current.value = value
+
+            # if key not found, we just add a new node entry
+            else:
+                current.next = HashTableEntry(key, value)
+                self.count += 1
+
+        if self.get_load_factor() > 0.7:
+            self.resize(self.capacity*2)
+
 
 
     def delete(self, key):
@@ -106,10 +139,24 @@ class HashTable:
         """
         # Your code here
         hash_index = self.hash_index(key)
-        if self.storage[hash_index] is not None:
-            self.storage[hash_index] = None
-        else:
-            print("Key not found")
+        current = self.storage[hash_index]
+
+        while current.next != None:
+            if current.key == key:
+                current.value = None
+                return
+
+            else:
+                current = current.next
+        if current.next == None:
+            if current.key == key:
+                current.value = None
+
+        # resize if load factor is too small
+
+        if self.get_load_factor() < 0.2:
+            self.resize(self.capacity // 2)
+
 
 
     def get(self, key):
@@ -122,10 +169,15 @@ class HashTable:
         """
         # Your code here
         hash_index = self.hash_index(key)
-        if self.storage[hash_index] is not None:
-            return self.storage[hash_index].value
-        else:
-            return None
+        current = self.storage[hash_index]
+        while current != None:
+            # if key exists
+            if current.key == key:
+                return current.value
+            current = current.next
+        return None
+
+      
 
 
     def resize(self, new_capacity):
@@ -135,8 +187,21 @@ class HashTable:
 
         Implement this.
         """
-        # Your code here
 
+        old_data = self.storage
+
+        # init new hash table
+        self.capacity = new_capacity
+        self.storage = [None] * new_capacity
+
+        # loop through and add each node to new hashtable
+
+        for i in old_data:
+            if i:
+                current = i
+                while current:
+                    self.put(current.key, current.value)
+                    current = current.next
 
 
 if __name__ == "__main__":
