@@ -23,7 +23,7 @@ class HashTable:
     def __init__(self, capacity):
         # Your code here
 
-        self.capacity = MIN_CAPACITY
+        self.capacity = capacity
 
         self.storage = [None] * self.capacity
         self.count = 0
@@ -65,6 +65,7 @@ class HashTable:
         """
 
         # Your code here
+        
 
 
     def djb2(self, key):
@@ -76,12 +77,10 @@ class HashTable:
 
         
         # Your code here
-        hash_index = 5381
-        hash_bytes = key.encode()
-
-        for byte in hash_bytes:
-            hash_index = ((hash_index << 5) + hash_index) + byte
-        return hash_index
+        hash = 5381
+        for item in key:
+            hash = (hash * 33) + ord(item)
+        return hash
 
 
     def hash_index(self, key):
@@ -103,6 +102,7 @@ class HashTable:
         """
         hash_index = self.hash_index(key)
 
+        # find an empty spot for new data
         if not self.storage[hash_index]:
             self.storage[hash_index] = HashTableEntry(key, value)
             self.count += 1
@@ -170,6 +170,7 @@ class HashTable:
         # Your code here
         hash_index = self.hash_index(key)
         current = self.storage[hash_index]
+
         while current != None:
             # if key exists
             if current.key == key:
@@ -187,8 +188,8 @@ class HashTable:
 
         Implement this.
         """
-
-        old_data = self.storage
+        # Your code here
+        old = self.storage
 
         # init new hash table
         self.capacity = new_capacity
@@ -196,7 +197,7 @@ class HashTable:
 
         # loop through and add each node to new hashtable
 
-        for i in old_data:
+        for i in old:
             if i:
                 current = i
                 while current:
